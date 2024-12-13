@@ -93,7 +93,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
                 crossAxisSpacing: 8.0,
                 mainAxisSpacing: 8.0,
               ),
-              itemCount: 8,
+              itemCount: 9,
               itemBuilder: (context, index) {
                 return Card(
                   color: Colors.amber,

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../profile_page/driver_profile_page.dart'; // Import DriverProfilePage
-import '../home_page/driver_home_page.dart'; // Import DriverHomePage
+import '../profile_page/driver_profile_page.dart';
+import '../home_page/driver_home_page.dart';
+import '../post_page/driver_post_page.dart'; // Import DriverPostPage
 
 class CustomNavbar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
-  final VoidCallback onPostTap; // Add a callback for the '+' icon
+  final VoidCallback onPostTap;
 
   const CustomNavbar({
     Key? key,
@@ -18,9 +19,8 @@ class CustomNavbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomAppBar(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Distribute icons evenly
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Home icon: Navigate to DriverHomePage
           IconButton(
             icon: const Icon(Icons.home),
             onPressed: () {
@@ -36,10 +36,13 @@ class CustomNavbar extends StatelessWidget {
             icon: const Icon(Icons.favorite),
             onPressed: () => onTap(1),
           ),
-
-          // Centered '+' icon (for post action)
           GestureDetector(
-            onTap: onPostTap, // Trigger the callback when + is tapped
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DriverPostPage()), // Navigate to the post page
+              );
+            },
             child: Container(
               padding: const EdgeInsets.all(10.0),
               decoration: BoxDecoration(
@@ -54,8 +57,6 @@ class CustomNavbar extends StatelessWidget {
               ),
             ),
           ),
-
-          // Right side items
           IconButton(
             icon: const Icon(Icons.local_shipping),
             onPressed: () => onTap(2),
@@ -63,16 +64,15 @@ class CustomNavbar extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              // Navigate to Driver Profile Page
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => DriverProfilePage(
-                    name: "John Doe", // Replace with actual name if dynamic
-                    dob: "1990-01-01", // Replace with actual DOB
-                    gender: "Male", // Replace with actual gender
-                    phoneNumber: "1234567890", // Replace with actual phone number
-                    licenseNumber: "AB12345", // Replace with actual license number
+                    name: "John Doe",
+                    dob: "1990-01-01",
+                    gender: "Male",
+                    phoneNumber: "1234567890",
+                    licenseNumber: "AB12345",
                   ),
                 ),
               );

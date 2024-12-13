@@ -3,7 +3,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../home_page/driver_home_page.dart';
 
-
 class DriverDetailsScreen extends StatefulWidget {
   @override
   _DriverDetailsScreenState createState() => _DriverDetailsScreenState();
@@ -16,8 +15,12 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
   String gender = '';
   String phoneNumber = '';
   String licenseNumber = '';
+  File? _image;
 
   TextEditingController dobController = TextEditingController();
+
+  // ImagePicker instance
+  final _picker = ImagePicker();
 
   // Corrected _submitForm method with Navigator.pushReplacement
   void _submitForm() {
@@ -29,6 +32,16 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
         context,
         MaterialPageRoute(builder: (context) => const DriverHomePage()),
       );
+    }
+  }
+
+  // Function to pick a photo using camera
+  Future<void> _takePhoto() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
     }
   }
 
@@ -64,6 +77,7 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+
                 // Date of Birth Field
                 TextFormField(
                   decoration: InputDecoration(labelText: "Date of Birth"),
@@ -86,6 +100,7 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+
                 // Gender Field
                 DropdownButtonFormField<String>(
                   value: gender.isEmpty ? null : gender,
@@ -103,6 +118,7 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   decoration: InputDecoration(labelText: "Gender"),
                 ),
                 const SizedBox(height: 16),
+
                 // Phone Number Field
                 TextFormField(
                   decoration: InputDecoration(labelText: "Phone Number"),
@@ -116,6 +132,7 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+
                 // License Number Field
                 TextFormField(
                   decoration: InputDecoration(labelText: "License Number"),
@@ -128,6 +145,39 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+
+                // Photo Capture Section
+                Text(
+                  "Click to Take Photo",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _takePhoto,
+                  child: Container(
+                    height: 150,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: _image == null
+                        ? Icon(
+                            Icons.camera_alt,
+                            color: Colors.grey,
+                            size: 50,
+                          )
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              _image!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // Submit Button
                 ElevatedButton(
                   onPressed: _submitForm,
