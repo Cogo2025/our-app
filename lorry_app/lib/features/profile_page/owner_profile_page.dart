@@ -3,6 +3,7 @@ import '../custom-navbar/driver_custom_navbar.dart'; // Ensure this path is corr
 
 class OwnerProfilePage extends StatelessWidget {
   final String name;
+  
   final String dob;
   final String gender;
   final String phoneNumber;
@@ -14,6 +15,7 @@ class OwnerProfilePage extends StatelessWidget {
     required this.dob,
     required this.gender,
     required this.phoneNumber,
+    
     required this.CINNumber,
   }) : super(key: key);
 
@@ -66,7 +68,8 @@ class OwnerProfilePage extends StatelessWidget {
                       // Date of Birth
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today, color: Colors.blueAccent),
+                          const Icon(Icons.calendar_today,
+                              color: Colors.blueAccent),
                           const SizedBox(width: 10),
                           Text(
                             "Date of Birth: $dob",
@@ -79,7 +82,8 @@ class OwnerProfilePage extends StatelessWidget {
                       // Gender
                       Row(
                         children: [
-                          const Icon(Icons.person_outline, color: Colors.blueAccent),
+                          const Icon(Icons.person_outline,
+                              color: Colors.blueAccent),
                           const SizedBox(width: 10),
                           Text(
                             "Gender: $gender",
@@ -100,12 +104,17 @@ class OwnerProfilePage extends StatelessWidget {
                           ),
                         ],
                       ),
+
+                      
+
+                      
                       const SizedBox(height: 16),
 
                       // License Number
                       Row(
                         children: [
-                          const Icon(Icons.card_membership, color: Colors.blueAccent),
+                          const Icon(Icons.card_membership,
+                              color: Colors.blueAccent),
                           const SizedBox(width: 10),
                           Text(
                             "CIN Number: $CINNumber",
@@ -141,7 +150,8 @@ class OwnerProfilePage extends StatelessWidget {
         selectedIndex: 3, // Set default index to the Profile tab
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home'); // Redirect to Home
+            Navigator.pushReplacementNamed(
+                context, '/home'); // Redirect to Home
           } else if (index == 3) {
             // Stay on the Profile Page
           }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../home_page/driver_home_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class DriverDetailsScreen extends StatefulWidget {
   @override
@@ -15,27 +17,58 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
   String gender = '';
   String phoneNumber = '';
   String licenseNumber = '';
+  String email = ''; // New Email Field
+  String password = ''; // New Password Field
+
   File? _image;
 
   TextEditingController dobController = TextEditingController();
 
-  // ImagePicker instance
   final _picker = ImagePicker();
 
-  // Corrected _submitForm method with Navigator.pushReplacement
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+  void _submitForm() async {
+  if (_formKey.currentState!.validate()) {
+    _formKey.currentState!.save();
 
-      // Navigate to DriverHomePage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DriverHomePage()),
+    final url = Uri.parse('http://localhost:5000/api/driver/register');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'dob': dob.toString(),
+          'gender': gender,
+          'phoneNumber': phoneNumber,
+          'licenseNumber': licenseNumber,
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        print('Driver registered successfully');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DriverHomePage()),
+        );
+      } else {
+        print('Failed to register: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to register: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      print('Error occurred during registration: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error occurred: $e')),
       );
     }
   }
+}
 
-  // Function to pick a photo using camera
+
   Future<void> _takePhoto() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
@@ -131,6 +164,7 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                     return null;
                   },
                 ),
+
                 const SizedBox(height: 16),
 
                 // License Number Field
@@ -140,6 +174,40 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your license number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Email Address Field
+                TextFormField(
+                  decoration: InputDecoration(labelText: "Email Address"),
+                  keyboardType: TextInputType.emailAddress,
+                  onSaved: (value) => email = value!,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email address';
+                    }
+                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                      return 'Please enter a valid email address';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Password Field
+                TextFormField(
+                  decoration: InputDecoration(labelText: "Password"),
+                  obscureText: true,
+                  onSaved: (value) => password = value!,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters long';
                     }
                     return null;
                   },

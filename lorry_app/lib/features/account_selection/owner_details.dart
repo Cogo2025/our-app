@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:lorry_app/core/theme/light_theme.dart';
-import '../home_page/owner_home_page.dart'; // Import your Owner Home Page (DriverHomePage)
+import '../home_page/owner_home_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class OwnerDetailsPage extends StatefulWidget {
   @override
@@ -16,18 +18,70 @@ class _OwnerDetailsPageState extends State<OwnerDetailsPage> {
   String gender = '';
   String phoneNumber = '';
   String cinNumber = '';
+  String email = ''; 
+  String password = '';
+
   File? _image;
 
   final _picker = ImagePicker();
 
-  // Method to pick an image
+  final TextEditingController dobController = TextEditingController(); // Add a controller for dob input
+
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      final url = Uri.parse('http://localhost:5000/api/owner/register');
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'name': name,
+            'dob': dob != null ? dob!.toIso8601String() : "", // ISO format for date
+            'gender': gender,
+            'phoneNumber': phoneNumber,
+            'CINNumber': cinNumber,
+            'email': email,
+            'password': password,
+          }),
+        );
+
+        if (response.statusCode == 201) {
+          print('Owner registered successfully');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const OwnerHomePage()),
+          );
+        } else {
+          print('Failed to register: ${response.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to register: ${response.body}')),
+          );
+        }
+      } catch (e) {
+        print('Error occurred during registration: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error occurred: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera); // Switch to gallery if needed
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
       });
     }
+  }
+
+  @override
+  void dispose() {
+    dobController.dispose();
+    super.dispose();
   }
 
   @override
@@ -68,6 +122,7 @@ class _OwnerDetailsPageState extends State<OwnerDetailsPage> {
                     labelText: "Date of Birth",
                     border: OutlineInputBorder(),
                   ),
+                  controller: dobController,
                   onTap: () async {
                     FocusScope.of(context).requestFocus(FocusNode());
                     final DateTime? selectedDate = await showDatePicker(
@@ -79,12 +134,16 @@ class _OwnerDetailsPageState extends State<OwnerDetailsPage> {
                     if (selectedDate != null && selectedDate != dob) {
                       setState(() {
                         dob = selectedDate;
+                        dobController.text = '${dob!.toLocal()}'.split(' ')[0]; // Format the date
                       });
                     }
                   },
-                  controller: TextEditingController(
-                    text: dob != null ? '${dob!.toLocal()}'.split(' ')[0] : '',
-                  ),
+                  validator: (value) {
+                    if (dob == null) {
+                      return 'Please select your date of birth';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -130,6 +189,7 @@ class _OwnerDetailsPageState extends State<OwnerDetailsPage> {
                     return null;
                   },
                 ),
+
                 const SizedBox(height: 16),
 
                 // CIN Number Field
@@ -142,6 +202,40 @@ class _OwnerDetailsPageState extends State<OwnerDetailsPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your CIN number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Email Address Field
+                TextFormField(
+                  decoration: InputDecoration(labelText: "Email Address"),
+                  keyboardType: TextInputType.emailAddress,
+                  onSaved: (value) => email = value!,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email address';
+                    }
+                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                      return 'Please enter a valid email address';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Password Field
+                TextFormField(
+                  decoration: InputDecoration(labelText: "Password"),
+                  obscureText: true,
+                  onSaved: (value) => password = value!,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters long';
                     }
                     return null;
                   },
@@ -167,23 +261,8 @@ class _OwnerDetailsPageState extends State<OwnerDetailsPage> {
                     backgroundColor: lightTheme.primaryColor,
                     minimumSize: Size(double.infinity, 50),
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      // Navigate to Owner Home Page
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OwnerHomePage(),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(
-                    "Submit",
-                    style: TextStyle(color: Colors.black),
-                  ),
+                  onPressed: _submitForm,
+                  child: Text('Submit'),
                 ),
               ],
             ),

@@ -73,6 +73,7 @@ class CustomNavbar extends StatelessWidget {
                     gender: "Male", 
                     phoneNumber: "1234567890", 
                     CINNumber: "AB12345",
+                  
                   ),
                 ),
               );
