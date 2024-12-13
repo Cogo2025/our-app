@@ -1,0 +1,29 @@
+name: lorry_app
+description: A new Flutter project
+
+publish_to: 'none' # Remove this line if you intend to publish the package
+
+environment:
+  sdk: '^3.5.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  image_picker: ^0.8.6+3  # Add your image_picker dependency here
+
+  
+
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+
+  # Assets section
+  assets:
+    - assets/images/lorryicon.jpg
