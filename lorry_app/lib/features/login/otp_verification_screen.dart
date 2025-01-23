@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lorry_app/core/theme/light_theme.dart'; // Correct path for your theme
+import 'package:lorry_app/core/theme/light_theme.dart';
+import 'package:lorry_app/features/home_page/owner_home_page.dart'; // Correct path for your theme
 
 class OTPVerificationScreen extends StatelessWidget {
   @override
@@ -39,6 +40,11 @@ class OTPVerificationScreen extends StatelessWidget {
                 ),
                 onPressed: () {
                   // TODO: Add OTP verification logic
+                   Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => OwnerHomePage()),
+                          );
                 },
                 child: Text(
                   "Verify OTP",
