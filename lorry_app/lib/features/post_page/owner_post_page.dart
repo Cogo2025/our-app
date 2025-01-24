@@ -232,6 +232,46 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
                   const SizedBox(height: 16),
                 ],
 
+                
+                // Display selected photos with delete option
+if (_photos.isNotEmpty) ...[
+  Text(
+    "Selected Photos:",
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  ),
+  const SizedBox(height: 8),
+  Wrap(
+    spacing: 8.0,
+    runSpacing: 8.0,
+    children: _photos.map((file) {
+      return Stack(
+        children: [
+          Image.file(
+            file,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: IconButton(
+              icon: Icon(Icons.delete, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  _photos.remove(file); // Remove the photo
+                });
+              },
+            ),
+          ),
+        ],
+      );
+    }).toList(),
+  ),
+  const SizedBox(height: 16),
+],
+
+
                 // Post Button
                 ElevatedButton(
                   onPressed: _submitPost,

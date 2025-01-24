@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lorry_app/features/cart-page/cart_page.dart';
-import '../profile_page/Owner_profile_page.dart';
 import '../home_page/owner_home_page.dart';
 import '../post_page/owner_post_page.dart'; // Import the owner post page
+import 'package:lorry_app/features/profile_page/owner_profile_page.dart';
 
 class CustomNavbar extends StatelessWidget {
   final int selectedIndex;
@@ -74,13 +74,7 @@ class CustomNavbar extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OwnerProfilePage(
-                    name: "John Doe", 
-                    dob: "1990-01-01", 
-                    gender: "Male", 
-                    phoneNumber: "1234567890", 
-                    CINNumber: "AB12345",
-                  
+                  builder: (context) => (UserProfilePage()  
                   ),
                 ),
               );

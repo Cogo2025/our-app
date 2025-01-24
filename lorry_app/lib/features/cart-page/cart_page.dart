@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../custom-navbar/owner_custom_navbar.dart' as owner_navbar;
 
 void main() => runApp(CartApp());
 
@@ -19,7 +20,15 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  int _selectedIndex = 0;
   List<int> cartItems = [1, 2, 3];
+
+  
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +105,14 @@ class _CartPageState extends State<CartPage> {
           ),
         ],
       ),
+      bottomNavigationBar: owner_navbar.CustomNavbar(
+        selectedIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        onPostTap: () {
+          print("Post action tapped!"); // Replace with the desired action
+        },
+      ),
     );
+    
   }
 }
