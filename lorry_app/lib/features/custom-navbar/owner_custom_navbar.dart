@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lorry_app/features/cart-page/cart_page.dart';
 import '../profile_page/Owner_profile_page.dart';
 import '../home_page/owner_home_page.dart';
 import '../post_page/owner_post_page.dart'; // Import the owner post page
@@ -34,7 +35,13 @@ class CustomNavbar extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.favorite),
-            onPressed: () => onTap(1),
+            onPressed: () {
+               Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CartPage()),
+                          );
+            }
           ),
           GestureDetector(
             onTap: () {

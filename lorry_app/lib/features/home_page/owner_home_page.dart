@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../custom-navbar/owner_custom_navbar.dart';
+import 'package:lorry_app/features/home_page/search_page.dart';
+import 'package:lorry_app/features/notification-page/notification_page.dart';
+import '../custom-navbar/owner_custom_navbar.dart' as owner_navbar;
 
 class OwnerHomePage extends StatefulWidget {
   const OwnerHomePage({Key? key}) : super(key: key);
@@ -10,14 +12,12 @@ class OwnerHomePage extends StatefulWidget {
 
 class _OwnerHomePageState extends State<OwnerHomePage> {
   int _selectedIndex = 0;
+  bool _showAllCards = false; // Track whether to show all cards
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-
-    // Handle navigation between tabs here if needed
-    // Example: Load different content for each tab
   }
 
   @override
@@ -41,15 +41,24 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.search),
+                      icon: Icon(Icons.search, color: Colors.black),
                       onPressed: () {
-                        // Search functionality
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SearchVehiclesPage()),
+                        );
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.notifications),
                       onPressed: () {
-                        // Notifications
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  NotificationMatchedPage()),
+                        );
                       },
                     ),
                   ],
@@ -57,64 +66,95 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
               ],
             ),
           ),
-          // Slideshow Section
-          Expanded(
-            flex: 1,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: List.generate(5, (index) {
+          // Slider Section
+          SizedBox(
+            height: 150,
+            child: PageView.builder(
+              controller: PageController(),
+              itemCount: 5,
+              itemBuilder: (context, index) {
                 return Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  margin: const EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                    borderRadius: BorderRadius.circular(10.0),
+                    color: Colors.blueAccent.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: Text(
                       'Slide ${index + 1}',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          // Cards Section
-          Expanded(
-            flex: 2,
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8.0,
-                mainAxisSpacing: 8.0,
-              ),
-              itemCount: 9,
-              itemBuilder: (context, index) {
-                return Card(
-                  color: Colors.amber,
-                  child: Center(
-                    child: Text(
-                      'Card ${index + 1}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
               },
             ),
           ),
+          const SizedBox(height: 20),
+          // Cards Section
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                Expanded(
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8.0,
+                      mainAxisSpacing: 8.0,
+                      childAspectRatio: 3 / 2, // Adjust aspect ratio
+                    ),
+                    itemCount: _showAllCards ? 9 : 4,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        color: Colors.amber,
+                        child: Center(
+                          child: Text(
+                            'Card ${index + 1}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // "View All" Button
+                if (!_showAllCards)
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showAllCards = true;
+                      });
+                    },
+                    child: const Text(
+                      'View All',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: CustomNavbar(
+      bottomNavigationBar: owner_navbar.CustomNavbar(
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
         onPostTap: () {
-    print("Post action tapped!"); // Replace with the desired action
-  },
+          print("Post action tapped!"); // Replace with the desired action
+        },
       ),
     );
   }
