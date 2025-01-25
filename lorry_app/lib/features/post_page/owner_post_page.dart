@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
+import '../profile_page/owner_profile_page.dart';
+import '../profile_page/your-post/your_post.dart';
 class OwnerPostPage extends StatefulWidget {
   const OwnerPostPage({Key? key}) : super(key: key);
 
@@ -65,25 +66,31 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
   }
 
   // Submit post
-  void _submitPost() {
-    // You can replace this with your backend submission logic
-    if (_formKey.currentState!.validate()) {
-      // Collect form data and photos
-      // Normally here, you would make an API call to submit the data
-      print("Post submitted with:");
-      print("Truck Type: $_truckType");
-      print("BS Version: $_bsVersion");
-      print("Driver Type: $_driverType");
-      print("Time Duration: $_timeDuration");
-      print("Location: $_location");
-      print("Photos: $_photos");
+void _submitPost() {
+  // Validate the form
+  if (_formKey.currentState!.validate()) {
+    // Collect form data and photos (replace this with your backend logic)
+    print("Post submitted with:");
+    print("Truck Type: $_truckType");
+    print("BS Version: $_bsVersion");
+    print("Driver Type: $_driverType");
+    print("Time Duration: $_timeDuration");
+    print("Location: $_location");
+    print("Photos: $_photos");
 
-      // Display a confirmation or navigate to another page
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Post successfully created!')));
-      Navigator.pop(context); // Navigate back to the previous page
-    }
+    // Display a success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Post successfully created!')),
+    );
+
+    // Navigate to the UserProfilePage
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => YourPostsPage()),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
