@@ -20,9 +20,10 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-    int _selectedIndex = 0;
+  int _selectedIndex = 0;
   List<int> cartItems = [1, 2, 3];
 
+  
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -112,5 +113,6 @@ class _CartPageState extends State<CartPage> {
         },
       ),
     );
+    
   }
 }
