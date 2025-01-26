@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lorry_app/features/cart-page/cart_page.dart';
 import '../home_page/owner_home_page.dart';
-import '../post_page/owner_post_page.dart'; // Import the owner post page
+import 'package:lorry_app/features/post_page/owner_post_page.dart'; // Import the owner post page
 import 'package:lorry_app/features/profile_page/owner_profile_page.dart';
 
 class CustomNavbar extends StatelessWidget {
@@ -34,20 +34,20 @@ class CustomNavbar extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.favorite),
-            onPressed: () {
-               Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => CartPage()),
-                          );
-            }
-          ),
+              icon: const Icon(Icons.favorite),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CartPage()),
+                );
+              }),
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const OwnerPostPage()), // Navigate to the post page
+                MaterialPageRoute(
+                    builder: (context) =>
+                         OwnerPostPage()), // Navigate to the post page
               );
             },
             child: Container(
@@ -74,8 +74,7 @@ class CustomNavbar extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => (UserProfilePage()  
-                  ),
+                  builder: (context) => (UserProfilePage()),
                 ),
               );
             },

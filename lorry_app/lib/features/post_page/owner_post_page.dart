@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:lorry_app/features/post_data.dart'; // Import global post storage
+import 'package:lorry_app/features/home_page/owner_home_page.dart'; // Redirect here after posting
 
 class OwnerPostPage extends StatefulWidget {
-  const OwnerPostPage({Key? key}) : super(key: key);
-
   @override
   _OwnerPostPageState createState() => _OwnerPostPageState();
 }
@@ -12,14 +12,12 @@ class OwnerPostPage extends StatefulWidget {
 class _OwnerPostPageState extends State<OwnerPostPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Dropdown values
+  // Form fields
   String? _truckType;
   String? _bsVersion;
   String? _driverType;
   String? _timeDuration;
   String? _location;
-
-  // Photo selection
   List<File> _photos = [];
   final _picker = ImagePicker();
 
@@ -64,54 +62,51 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
     }
   }
 
-  // Submit post
+  // Submit Post
   void _submitPost() {
-    // You can replace this with your backend submission logic
     if (_formKey.currentState!.validate()) {
-      // Collect form data and photos
-      // Normally here, you would make an API call to submit the data
-      print("Post submitted with:");
-      print("Truck Type: $_truckType");
-      print("BS Version: $_bsVersion");
-      print("Driver Type: $_driverType");
-      print("Time Duration: $_timeDuration");
-      print("Location: $_location");
-      print("Photos: $_photos");
+      // Store the post in the global list
+      ownerPosts.add({
+        'truckType': _truckType,
+        'bsVersion': _bsVersion,
+        'driverType': _driverType,
+        'timeDuration': _timeDuration,
+        'location': _location,
+        'photos': _photos.map((file) => file.path).toList(),
+      });
 
-      // Display a confirmation or navigate to another page
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Post successfully created!')));
-      Navigator.pop(context); // Navigate back to the previous page
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Post successfully created!'),
+            duration: Duration(seconds: 2)),
+      );
+
+      // Redirect to Owner Home Page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => OwnerHomePage()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Owner Post"),
-        backgroundColor: Colors.blueAccent,
-      ),
+      appBar:
+          AppBar(title: Text("Owner Post"), backgroundColor: Colors.blueAccent),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Truck Type Dropdown
                 DropdownButtonFormField<String>(
                   value: _truckType,
                   decoration: InputDecoration(
-                    labelText: "Truck Type",
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _truckType = value;
-                    });
-                  },
+                      labelText: "Truck Type", border: OutlineInputBorder()),
+                  onChanged: (value) => setState(() => _truckType = value),
                   items: truckTypes
                       .map((type) =>
                           DropdownMenuItem(value: type, child: Text(type)))
@@ -119,20 +114,12 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
                   validator: (value) =>
                       value == null ? 'Please select truck type' : null,
                 ),
-                const SizedBox(height: 16),
-
-                // BS Version Dropdown
+                SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _bsVersion,
                   decoration: InputDecoration(
-                    labelText: "BS Version",
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _bsVersion = value;
-                    });
-                  },
+                      labelText: "BS Version", border: OutlineInputBorder()),
+                  onChanged: (value) => setState(() => _bsVersion = value),
                   items: bsVersions
                       .map((version) => DropdownMenuItem(
                           value: version, child: Text(version)))
@@ -140,146 +127,38 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
                   validator: (value) =>
                       value == null ? 'Please select BS version' : null,
                 ),
-                const SizedBox(height: 16),
-
-                // Driver Type Dropdown
-                DropdownButtonFormField<String>(
-                  value: _driverType,
-                  decoration: InputDecoration(
-                    labelText: "Driver Type",
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _driverType = value;
-                    });
-                  },
-                  items: driverTypes
-                      .map((type) =>
-                          DropdownMenuItem(value: type, child: Text(type)))
-                      .toList(),
-                  validator: (value) =>
-                      value == null ? 'Please select driver type' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Time Duration Dropdown
-                DropdownButtonFormField<String>(
-                  value: _timeDuration,
-                  decoration: InputDecoration(
-                    labelText: "Time Duration",
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _timeDuration = value;
-                    });
-                  },
-                  items: timeDurations
-                      .map((duration) => DropdownMenuItem(
-                          value: duration, child: Text(duration)))
-                      .toList(),
-                  validator: (value) =>
-                      value == null ? 'Please select time duration' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Location Dropdown
-                DropdownButtonFormField<String>(
-                  value: _location,
-                  decoration: InputDecoration(
-                    labelText: "Location",
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _location = value;
-                    });
-                  },
-                  items: locations
-                      .map((loc) =>
-                          DropdownMenuItem(value: loc, child: Text(loc)))
-                      .toList(),
-                  validator: (value) =>
-                      value == null ? 'Please select location' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Next Button
+                SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _pickImages,
-                  child: Text("Upload Lorry Photos"),
-                ),
-                const SizedBox(height: 16),
-
-                // Display selected photos
-                if (_photos.isNotEmpty) ...[
-                  Text("Selected Photos:",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
+                    onPressed: _pickImages, child: Text("Upload Lorry Photos")),
+                SizedBox(height: 16),
+                if (_photos.isNotEmpty)
                   Wrap(
                     spacing: 8.0,
                     children: _photos.map((file) {
-                      return Image.file(
-                        file,
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
+                      return Stack(
+                        children: [
+                          Image.file(file,
+                              width: 100, height: 100, fit: BoxFit.cover),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: IconButton(
+                              icon: Icon(Icons.delete, color: Colors.white),
+                              onPressed: () =>
+                                  setState(() => _photos.remove(file)),
+                            ),
+                          ),
+                        ],
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
-                ],
-
-                
-                // Display selected photos with delete option
-if (_photos.isNotEmpty) ...[
-  Text(
-    "Selected Photos:",
-    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-  ),
-  const SizedBox(height: 8),
-  Wrap(
-    spacing: 8.0,
-    runSpacing: 8.0,
-    children: _photos.map((file) {
-      return Stack(
-        children: [
-          Image.file(
-            file,
-            width: 100,
-            height: 100,
-            fit: BoxFit.cover,
-          ),
-          Positioned(
-            right: 0,
-            top: 0,
-            child: IconButton(
-              icon: Icon(Icons.delete, color: Colors.white),
-              onPressed: () {
-                setState(() {
-                  _photos.remove(file); // Remove the photo
-                });
-              },
-            ),
-          ),
-        ],
-      );
-    }).toList(),
-  ),
-  const SizedBox(height: 16),
-],
-
-
-                // Post Button
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _submitPost,
                   child: Text("Post"),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
-                    backgroundColor: Colors.blueAccent,
-                  ),
+                      minimumSize: Size(double.infinity, 50),
+                      backgroundColor: Colors.blueAccent),
                 ),
               ],
             ),

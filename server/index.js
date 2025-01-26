@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const registerRoutes = require('./routes/registerRoutes');
-
+const loginRoutes = require('./routes/loginRoutes'); // Add this line
+require('dotenv').config();
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -20,6 +21,7 @@ mongoose.connection.once('open', () => {
 
 // Use Routes
 app.use('/api', registerRoutes);
+app.use('/api', loginRoutes); // Add this line
 
 const PORT = 5000;
 app.listen(PORT, () => {
