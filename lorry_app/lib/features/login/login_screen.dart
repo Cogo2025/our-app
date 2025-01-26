@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String email = '';
   String password = '';
   bool isLoading = false;
-  String userType = 'owner'; // 'owner' or 'driver'
+  String userType = 'owner'; // Default is 'owner', can be changed dynamically.
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -32,42 +32,51 @@ class _LoginScreenState extends State<LoginScreen> {
       final url = Uri.parse(
         userType == 'owner'
             ? 'http://localhost:5000/api/owner/login'
-            : 'http://localhost:5000/api/driver/login', // Dynamic URL based on userType
+            : 'http://localhost:5000/api/driver/login',
       );
+
+      // ✅ Debug: Print email & password before making the request
+      print("🔹 Sending Login Request...");
+      print("📧 Email: ${emailController.text}");
+      print("🔑 Password: ${passwordController.text}");
 
       try {
         final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'email': email,
-            'password': password,
+            'email': emailController.text,  // Ensure correct field usage
+            'password': passwordController.text,
           }),
         );
 
+        print("🔹 Response Code: ${response.statusCode}");
+        print("🔹 Response Body: ${response.body}");
+
         if (response.statusCode == 200) {
-          // Parse the response and redirect user based on userType
           final data = jsonDecode(response.body);
-          String token = data['token']; // Example: get token if returned
+          String token = data['token'];
+          print("✅ Login Successful: Token - $token");
 
           if (userType == 'owner') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => OwnerHomePage()),
             );
-          } else {
+          } else if(userType == 'driver') {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => DriverHomePage()), // Adjust based on your app
+              MaterialPageRoute(builder: (context) => DriverHomePage()),
             );
           }
         } else {
+          print("❌ Login Failed: Invalid email or password");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Invalid email or password')),
           );
         }
       } catch (e) {
-        print('Error occurred during login: $e');
+        print('🚨 Error occurred during login: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error occurred: $e')),
         );
@@ -111,6 +120,34 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                // User Type Selection
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Radio<String>(
+                      value: 'owner',
+                      groupValue: userType,
+                      onChanged: (String? value) {
+                        setState(() {
+                          userType = value!;
+                        });
+                      },
+                    ),
+                    Text("Owner"),
+                    Radio<String>(
+                      value: 'driver',
+                      groupValue: userType,
+                      onChanged: (String? value) {
+                        setState(() {
+                          userType = value!;
+                        });
+                      },
+                    ),
+                    Text("Driver"),
+                  ],
                 ),
                 const SizedBox(height: 24),
 

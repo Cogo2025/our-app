@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:lorry_app/features/post_page/owner_post_page.dart';
+import 'package:lorry_app/features/post_data.dart';
 
 class YourPostsPage extends StatelessWidget {
   @override
@@ -13,47 +15,42 @@ class YourPostsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Your Posts'),
         backgroundColor: Colors.blue.shade700,
-        centerTitle: true,
       ),
-      body: ListView(
-        children: [
-          if (args.isNotEmpty) ...[
-            Card(
-              margin: EdgeInsets.all(10),
-              elevation: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Display selected photos
-                  if (args['photos'] != null && args['photos'].isNotEmpty)
-                    Wrap(
-                      spacing: 8.0,
-                      children: (args['photos'] as List<File>).map((file) {
-                        return Image.file(
-                          file,
-                          width: 100,
-                          height: 100,
+      body: ownerPosts.isEmpty
+          ? Center(child: Text("No posts yet."))
+          : ListView.builder(
+              itemCount: ownerPosts.length,
+              itemBuilder: (context, index) {
+                final post = ownerPosts[index];
+                return Card(
+                  margin: EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (post['photos'] != null &&
+                          (post['photos'] as List).isNotEmpty)
+                        Image.file(
+                          post['photos'][0],
+                          height: 150,
+                          width: double.infinity,
                           fit: BoxFit.cover,
-                        );
-                      }).toList(),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      "Truck Type: ${args['truckType']}\n"
-                      "BS Version: ${args['bsVersion']}\n"
-                      "Driver Type: ${args['driverType']}\n"
-                      "Time Duration: ${args['timeDuration']}\n"
-                      "Location: ${args['location']}",
-                      style: TextStyle(fontSize: 16),
-                    ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Truck Type: ${post['truckType'] ?? ''}",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text("BS Version: ${post['bsVersion'] ?? ''}"),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          ],
-        ],
-      ),
     );
   }
 }

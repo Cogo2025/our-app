@@ -1,53 +1,59 @@
 const bcrypt = require('bcrypt');
 const { Driver, Owner } = require('../models/owner');
 
+// Driver Registration
 const registerDriver = async (req, res) => {
   try {
     const { name, dob, gender, phoneNumber, licenseNumber, email, password } = req.body;
 
-    // Hash password
+    // Check if email already exists
+    const existingDriver = await Driver.findOne({ email });
+    if (existingDriver) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Save to database
-    const driver = new Driver({
-      name,
-      dob,
-      gender,
-      phoneNumber,
-      licenseNumber,
-      email,
-      password: hashedPassword,
+    const newDriver = new Driver({
+      name, dob, gender, phoneNumber, licenseNumber, email,
+      password: hashedPassword, // Save hashed password
     });
 
-    await driver.save();
-    res.status(201).json({ message: 'Driver registered successfully!' });
+    await newDriver.save();
+    res.status(201).json({ message: 'Driver registered successfully' });
+
   } catch (error) {
-    res.status(500).json({ error: 'Failed to register driver', details: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 };
 
+// Owner Registration
 const registerOwner = async (req, res) => {
   try {
     const { name, dob, gender, phoneNumber, cinNumber, email, password } = req.body;
 
-    // Hash password
+    // Check if email already exists
+    const existingOwner = await Owner.findOne({ email });
+    if (existingOwner) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Save to database
-    const owner = new Owner({
-      name,
-      dob,
-      gender,
-      phoneNumber,
-      cinNumber,
-      email,
-      password: hashedPassword,
+    const newOwner = new Owner({
+      name, dob, gender, phoneNumber, cinNumber, email,
+      password: hashedPassword, // Save hashed password
     });
 
-    await owner.save();
-    res.status(201).json({ message: 'Owner registered successfully!' });
+    await newOwner.save();
+    res.status(201).json({ message: 'Owner registered successfully' });
+
   } catch (error) {
-    res.status(500).json({ error: 'Failed to register owner', details: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 };
 

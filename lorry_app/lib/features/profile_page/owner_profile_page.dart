@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lorry_app/features/profile_page/your-post/your_post.dart';
+import 'package:lorry_app/features/custom-navbar/owner_custom_navbar.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -8,7 +9,20 @@ void main() {
   ));
 }
 
-class UserProfilePage extends StatelessWidget {
+class UserProfilePage extends StatefulWidget {
+  @override
+  _UserProfilePageState createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends State<UserProfilePage> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,12 +114,12 @@ class UserProfilePage extends StatelessWidget {
               ),
             ),
 
-            // "Verify Profile" Button
+            // "Edit Your Profile" Button
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
                 onPressed: () {
-                  // Action for profile verification
+                  // Action for profile editing
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade600,
@@ -117,7 +131,6 @@ class UserProfilePage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    
                     SizedBox(width: 10),
                     Text(
                       'Edit Your Profile',
@@ -135,11 +148,10 @@ class UserProfilePage extends StatelessWidget {
               trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
               onTap: () {
                 // Navigate to View Posts
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>YourPostsPage()),
-                        );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => YourPostsPage()),
+                );
               },
             ),
             ListTile(
@@ -175,6 +187,13 @@ class UserProfilePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: CustomNavbar(
+        selectedIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        onPostTap: () {
+          print("Post action tapped!"); // Replace with the desired action
+        },
       ),
     );
   }
