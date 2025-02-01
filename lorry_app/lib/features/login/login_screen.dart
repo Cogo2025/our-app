@@ -6,7 +6,7 @@ import 'package:lorry_app/features/home_page/owner_home_page.dart';
 import 'package:lorry_app/features/home_page/driver_home_page.dart';
 import 'package:lorry_app/features/account_selection/account_selection_screen.dart';
 import 'package:lorry_app/features/login/phone_number_input_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Add this import
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -24,6 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   // Function to handle login for both owner and driver
+  // Import SharedPreferences
+
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -55,38 +57,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          String token = data['token'];
+          String token = data['token']; // Extract token
           print("✅ Login Successful: Token - $token");
 
-          // Save the token in SharedPreferences
-          final prefs = await SharedPreferences.getInstance();
-          prefs.setString('authToken', token); // Save token
+          // ✅ Store Token in SharedPreferences
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString("token", token);
+          print("📝 Token Saved in SharedPreferences");
 
-          Widget nextPage =
-              userType == 'owner' ? OwnerHomePage() : DriverHomePage();
-
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  nextPage,
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                const begin = Offset(1.0, 0.0); // Slide from right
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-
-                var tween =
-                    Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                var offsetAnimation = animation.drive(tween);
-
-                return SlideTransition(
-                  position: offsetAnimation,
-                  child: child,
-                );
-              },
-            ),
-          );
+          // Navigate to the respective home page
+          if (userType == 'owner') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => OwnerHomePage()),
+            );
+          } else if (userType == 'driver') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DriverHomePage()),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Invalid email or password')),
@@ -287,7 +277,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => AccountSelectionPage()),
+                                    builder: (context) =>
+                                        AccountSelectionPage()),
                               );
                             },
                             child: Text(
