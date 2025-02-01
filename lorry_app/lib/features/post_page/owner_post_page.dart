@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'dart:io';
-import 'package:lorry_app/features/post_data.dart'; // Import global post storage
-import 'package:lorry_app/features/home_page/owner_home_page.dart'; // Redirect here after posting
+import 'package:image_picker/image_picker.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';  // Make sure to import this package
 
 class OwnerPostPage extends StatefulWidget {
   @override
@@ -20,6 +21,9 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
   String? _location;
   List<File> _photos = [];
   final _picker = ImagePicker();
+  
+  // User token (make sure this is coming from your login response or shared preferences)
+  String _userToken = "your_jwt_token";  // Replace with your actual token
 
   // Dropdown options
   final List<String> truckTypes = [
@@ -52,6 +56,18 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
     "Kolkata"
   ];
 
+  // Method to extract the user ID from the JWT token
+  String _getOwnerIdFromToken() {
+    try {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(_userToken);
+      print('Decoded Token Data: $decodedToken');
+      return decodedToken['userId'];  // Or use 'ownerId' depending on your token structure
+    } catch (e) {
+      print('Error decoding token: $e');
+      throw FormatException('Invalid token format');
+    }
+  }
+
   // Pick images for lorry
   Future<void> _pickImages() async {
     final pickedFiles = await _picker.pickMultiImage();
@@ -63,38 +79,53 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
   }
 
   // Submit Post
-  void _submitPost() {
+  Future<void> _submitPost() async {
     if (_formKey.currentState!.validate()) {
-      // Store the post in the global list
-      ownerPosts.add({
-        'truckType': _truckType,
-        'bsVersion': _bsVersion,
-        'driverType': _driverType,
-        'timeDuration': _timeDuration,
-        'location': _location,
-        'photos': _photos.map((file) => file.path).toList(),
-      });
+      final url = 'http://localhost:5000/api/owner/posts'; // Correct the backend URL
+      String ownerId = _getOwnerIdFromToken();
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Post successfully created!'),
-            duration: Duration(seconds: 2)),
-      );
+      try {
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: json.encode({
+            'ownerId': ownerId, // Make sure to include the ownerId in the post request
+            'truckType': _truckType,
+            'bsVersion': _bsVersion,
+            'driverType': _driverType,
+            'timeDuration': _timeDuration,
+            'location': _location,
+            'photos': _photos.map((file) => file.path).toList(),
+          }),
+        );
 
-      // Redirect to Owner Home Page
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => OwnerHomePage()),
-      );
+        print('Response Status: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Post created successfully!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create post')),
+          );
+        }
+      } catch (error) {
+        print('Error: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to post')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: Text("Owner Post"), backgroundColor: Colors.blueAccent),
+      appBar: AppBar(title: Text("Owner Post"), backgroundColor: Colors.blueAccent),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -126,6 +157,45 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
                       .toList(),
                   validator: (value) =>
                       value == null ? 'Please select BS version' : null,
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _driverType,
+                  decoration: InputDecoration(
+                      labelText: "Driver Type", border: OutlineInputBorder()),
+                  onChanged: (value) => setState(() => _driverType = value),
+                  items: driverTypes
+                      .map((driver) =>
+                          DropdownMenuItem(value: driver, child: Text(driver)))
+                      .toList(),
+                  validator: (value) =>
+                      value == null ? 'Please select driver type' : null,
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _timeDuration,
+                  decoration: InputDecoration(
+                      labelText: "Time Duration", border: OutlineInputBorder()),
+                  onChanged: (value) => setState(() => _timeDuration = value),
+                  items: timeDurations
+                      .map((duration) =>
+                          DropdownMenuItem(value: duration, child: Text(duration)))
+                      .toList(),
+                  validator: (value) =>
+                      value == null ? 'Please select time duration' : null,
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _location,
+                  decoration: InputDecoration(
+                      labelText: "Location", border: OutlineInputBorder()),
+                  onChanged: (value) => setState(() => _location = value),
+                  items: locations
+                      .map((location) =>
+                          DropdownMenuItem(value: location, child: Text(location)))
+                      .toList(),
+                  validator: (value) =>
+                      value == null ? 'Please select location' : null,
                 ),
                 SizedBox(height: 16),
                 ElevatedButton(
