@@ -6,6 +6,7 @@ import 'package:lorry_app/features/home_page/owner_home_page.dart';
 import 'package:lorry_app/features/home_page/driver_home_page.dart'; // Adjust based on your structure
 import 'package:lorry_app/features/account_selection/account_selection_screen.dart';
 import 'package:lorry_app/features/login/phone_number_input_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -23,6 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   // Function to handle login for both owner and driver
+  // Import SharedPreferences
+
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -35,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
             : 'http://localhost:5000/api/driver/login',
       );
 
-      // ✅ Debug: Print email & password before making the request
       print("🔹 Sending Login Request...");
       print("📧 Email: ${emailController.text}");
       print("🔑 Password: ${passwordController.text}");
@@ -45,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'email': emailController.text,  // Ensure correct field usage
+            'email': emailController.text,
             'password': passwordController.text,
           }),
         );
@@ -55,15 +57,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          String token = data['token'];
+          String token = data['token']; // Extract token
           print("✅ Login Successful: Token - $token");
 
+          // ✅ Store Token in SharedPreferences
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString("token", token);
+          print("📝 Token Saved in SharedPreferences");
+
+          // Navigate to the respective home page
           if (userType == 'owner') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => OwnerHomePage()),
             );
-          } else if(userType == 'driver') {
+          } else if (userType == 'driver') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => DriverHomePage()),
@@ -255,7 +263,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => AccountSelectionPage()),
+                                    builder: (context) =>
+                                        AccountSelectionPage()),
                               );
                             },
                             child: Text(
