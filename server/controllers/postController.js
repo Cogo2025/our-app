@@ -19,11 +19,10 @@ const createPost = async (req, res) => {
       location,
       photos,
       owner: req.user.userId,
-      userType: 'owner'
     });
 
     await newPost.save();
-    console.log('Created owner post:', newPost);
+    console.log('Created post:', newPost);
     res.status(201).json({ message: 'Post created successfully', post: newPost });
   } catch (error) {
     console.error('Error creating post:', error);
@@ -37,7 +36,7 @@ const getMyPosts = async (req, res) => {
     const posts = await OwnerPost.find({ owner: req.user.userId })
       .sort({ createdAt: -1 });
     
-    console.log('Fetched owner posts:', posts);
+    console.log('Fetched posts:', posts);
     res.status(200).json(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);

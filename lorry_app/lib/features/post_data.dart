@@ -25,14 +25,14 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: json['_id']?.toString() ?? '',
-      truckType: json['truckType']?.toString() ?? '',
-      bsVersion: json['bsVersion']?.toString() ?? '',
-      driverType: json['driverType']?.toString() ?? '',
-      timeDuration: json['timeDuration']?.toString() ?? '',
-      location: json['location']?.toString() ?? '',
-      photos: (json['photos'] as List<dynamic>?)?.map((photo) => photo.toString()).toList() ?? [],
-      ownerId: json['owner']?.toString() ?? '',
+      id: json['_id'] ?? '',
+      truckType: json['truckType'] ?? '',
+      bsVersion: json['bsVersion'] ?? '',
+      driverType: json['driverType'] ?? '',
+      timeDuration: json['timeDuration'] ?? '',
+      location: json['location'] ?? '',
+      photos: List<String>.from(json['photos'] ?? []),
+      ownerId: json['owner'] ?? '',
     );
   }
 }

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:lorry_app/features/home_page/owner_home_page.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async'; // Add this import for TimeoutException
+import 'dart:async';
 import 'package:http_parser/http_parser.dart';
+import 'dart:typed_data';
+import '../home_page/owner_home_page.dart';
 
 class OwnerPostPage extends StatefulWidget {
   @override
@@ -15,39 +16,28 @@ class OwnerPostPage extends StatefulWidget {
 
 class _OwnerPostPageState extends State<OwnerPostPage> {
   final _formKey = GlobalKey<FormState>();
-  String? _truckType, _bsVersion, _driverType, _timeDuration, _location;
+  List<Uint8List> _photoBytes = [];
+  List<File> _photos = [];
   final _picker = ImagePicker();
 
-  List<Uint8List> _photoBytes = []; // Store image data for web
+  String? _truckType;
+  String? _bsVersion;
+  String? _driverType;
+  String? _timeDuration;
+  String? _location;
 
   final List<String> truckTypes = ["Light", "Medium", "Heavy", "Mini", "Flatbed", "Box"];
   final List<String> bsVersions = ["BS3", "BS4", "BS6"];
-  final List<String> driverTypes = ["24hrs", "12hrs"];
+  final List<String> driverTypes = ["Owner Driver", "Driver Provided", "Self-Driven"];
   final List<String> timeDurations = ["1 day", "1 week", "1 month", "3 months", "6 months", "1 year"];
   final List<String> locations = ["Delhi", "Mumbai", "Chennai", "Bangalore", "Kolkata"];
 
-  @override
-  void initState() {
-    super.initState();
-    // Set default values for the dropdown fields
-    _truckType = truckTypes[0]; 
-    _bsVersion = bsVersions[0]; 
-    _driverType = driverTypes[0]; 
-    _timeDuration = timeDurations[0]; 
-    _location = locations[0]; 
-  }
-
-  // Picking Images (Works on Web & Mobile)
   Future<void> _pickImages() async {
     final pickedFiles = await _picker.pickMultiImage();
     if (pickedFiles != null) {
-      List<Uint8List> imageBytesList = [];
-      for (XFile file in pickedFiles) {
-        Uint8List bytes = await file.readAsBytes();
-        imageBytesList.add(bytes);
-      }
       setState(() {
-        _photoBytes = imageBytesList;
+        _photos = pickedFiles.map((file) => File(file.path)).toList();
+        _photoBytes = _photos.map((file) => file.readAsBytesSync()).toList();
       });
     }
   }
@@ -75,7 +65,6 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
         return;
       }
 
-      // Updated URL for owner posts
       var url = Uri.parse("http://localhost:5000/api/owner/posts");
       var request = http.MultipartRequest("POST", url);
       
@@ -104,30 +93,24 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
         }
       }
 
-      var streamedResponse = await request.send().timeout(
-        Duration(seconds: 30),
-        onTimeout: () {
-          throw TimeoutException('Request timed out');
-        },
-      );
-      
+      var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
-      Navigator.pop(context);
+      Navigator.pop(context); // Remove loading dialog
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Post created successfully!")),
         );
+        
         Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (context) => OwnerHomePage())
+          context,
+          MaterialPageRoute(builder: (context) => OwnerHomePage()),
         );
       } else {
-        var responseData = jsonDecode(response.body);
-        var errorMsg = responseData['error'] ?? "Unknown error occurred";
+        var responseData = json.decode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $errorMsg")),
+          SnackBar(content: Text(responseData['error'] ?? 'Failed to create post')),
         );
       }
     } catch (e) {
@@ -142,80 +125,202 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Owner Post"), backgroundColor: Colors.blueAccent),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
+      appBar: AppBar(
+        title: Text('Create Post'),
+        backgroundColor: Colors.blue.shade700,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
                   value: _truckType,
-                  decoration: InputDecoration(labelText: "Truck Type", border: OutlineInputBorder()),
-                  onChanged: (value) => setState(() => _truckType = value),
-                  items: truckTypes.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
-                  validator: (value) => value == null || value.isEmpty ? 'Please select truck type' : null,
+                  decoration: InputDecoration(labelText: 'Truck Type'),
+                  items: truckTypes.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a truck type';
+                    }
+                    return null;
+                  },
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _truckType = newValue;
+                    });
+                  },
                 ),
                 SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _bsVersion,
-                  decoration: InputDecoration(labelText: "BS Version", border: OutlineInputBorder()),
-                  onChanged: (value) => setState(() => _bsVersion = value),
-                  items: bsVersions.map((version) => DropdownMenuItem(value: version, child: Text(version))).toList(),
-                  validator: (value) => value == null || value.isEmpty ? 'Please select BS version' : null,
+                  decoration: InputDecoration(labelText: 'BS Version'),
+                  items: bsVersions.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a BS version';
+                    }
+                    return null;
+                  },
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _bsVersion = newValue;
+                    });
+                  },
                 ),
                 SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _driverType,
-                  decoration: InputDecoration(labelText: "Driver Type", border: OutlineInputBorder()),
-                  onChanged: (value) => setState(() => _driverType = value),
-                  items: driverTypes.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
-                  validator: (value) => value == null || value.isEmpty ? 'Please select driver type' : null,
+                  decoration: InputDecoration(labelText: 'Driver Type'),
+                  items: driverTypes.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a driver type';
+                    }
+                    return null;
+                  },
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _driverType = newValue;
+                    });
+                  },
                 ),
                 SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _timeDuration,
-                  decoration: InputDecoration(labelText: "Time Duration", border: OutlineInputBorder()),
-                  onChanged: (value) => setState(() => _timeDuration = value),
-                  items: timeDurations.map((duration) => DropdownMenuItem(value: duration, child: Text(duration))).toList(),
-                  validator: (value) => value == null || value.isEmpty ? 'Please select time duration' : null,
+                  decoration: InputDecoration(labelText: 'Time Duration'),
+                  items: timeDurations.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a time duration';
+                    }
+                    return null;
+                  },
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _timeDuration = newValue;
+                    });
+                  },
                 ),
                 SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _location,
-                  decoration: InputDecoration(labelText: "Location", border: OutlineInputBorder()),
-                  onChanged: (value) => setState(() => _location = value),
-                  items: locations.map((location) => DropdownMenuItem(value: location, child: Text(location))).toList(),
-                  validator: (value) => value == null || value.isEmpty ? 'Please select location' : null,
+                  decoration: InputDecoration(labelText: 'Location'),
+                  items: locations.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a location';
+                    }
+                    return null;
+                  },
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _location = newValue;
+                    });
+                  },
                 ),
                 SizedBox(height: 16),
-                ElevatedButton(onPressed: _pickImages, child: Text("Upload Lorry Photos")),
-                SizedBox(height: 16),
-                if (_photoBytes.isNotEmpty)
-                  Wrap(
-                    spacing: 8.0,
-                    children: _photoBytes.map((bytes) {
-                      return Stack(
-                        children: [
-                          Image.memory(bytes, width: 100, height: 100, fit: BoxFit.cover),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: IconButton(
-                              icon: Icon(Icons.delete, color: Colors.white),
-                              onPressed: () => setState(() => _photoBytes.remove(bytes)),
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+                ElevatedButton(
+                  onPressed: _pickImages,
+                  child: Text("Upload Lorry Photos"),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12),
                   ),
+                ),
                 SizedBox(height: 16),
+                
+                if (_photos.isNotEmpty)
+                  Container(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _photos.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 8.0),
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    _photos[index],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _photos.removeAt(index);
+                                      _photoBytes.removeAt(index);
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                
+                SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _submitPost,
                   child: Text("Post"),
-                  style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 50), backgroundColor: Colors.blueAccent),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 50),
+                    backgroundColor: Colors.blueAccent,
+                  ),
                 ),
               ],
             ),

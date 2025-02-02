@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lorry_app/features/home_page/search_page.dart';
 import 'package:lorry_app/features/notification-page/notification_page.dart';
+import 'package:lorry_app/features/profile_page/owner_profile_page.dart';
 import '../custom-navbar/owner_custom_navbar.dart' as owner_navbar;
 
 class OwnerHomePage extends StatefulWidget {
@@ -18,6 +19,33 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Handle navigation based on index
+    switch (index) {
+      case 0: // Home
+        break;
+      case 1: // Search
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchVehiclesPage()),
+        );
+        break;
+      case 2: // Post
+        // Handle post action
+        break;
+      case 3: // Notifications
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => NotificationMatchedPage()),
+        );
+        break;
+      case 4: // Profile
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UserProfilePage()),
+        );
+        break;
+    }
   }
 
   @override
@@ -25,6 +53,26 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Owner Home'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SearchVehiclesPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationMatchedPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -153,7 +201,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
         onPostTap: () {
-          print("Post action tapped!"); // Replace with the desired action
+          print("Post action tapped!");
         },
       ),
     );

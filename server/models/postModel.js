@@ -9,13 +9,12 @@ const postSchema = new mongoose.Schema({
   location: String,
   photos: [String], // Path of images
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Owner' }, // Reference to Owner
-  userType: { type: String, enum: ['driver', 'owner'], required: true },
+  userType: { type: String, default: 'owner' },
 }, { timestamps: true });
 
-const DriverPost = postDB.model('DriverPost', postSchema, 'driver-posts');
-const OwnerPost = postDB.model('OwnerPost', postSchema, 'owner-posts');
+const OwnerPost = postDB.model('OwnerPost', postSchema, 'owner');
 
-module.exports = { DriverPost, OwnerPost };
+module.exports = { OwnerPost };
 
 
 

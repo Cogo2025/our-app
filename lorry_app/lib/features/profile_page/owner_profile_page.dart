@@ -5,22 +5,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lorry_app/features/profile_page/your-post/your_post.dart';
 import 'package:lorry_app/features/custom-navbar/owner_custom_navbar.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: UserProfilePage(),
-    debugShowCheckedModeBanner: false,
-  ));
-}
-
 class UserProfilePage extends StatefulWidget {
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  int _selectedIndex = 0;
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  String? error;
+  int _selectedIndex = 4;
 
   @override
   void initState() {
@@ -34,10 +28,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final token = prefs.getString('token');
 
       if (token == null) {
-        // Navigate to login if no token
-        Navigator.pushReplacementNamed(context, '/login');
+        setState(() {
+          error = 'No authentication token found';
+          isLoading = false;
+        });
         return;
       }
+
+      print('Token found: $token'); // Debug print
 
       final response = await http.get(
         Uri.parse('http://localhost:5000/api/owner/profile'),
@@ -47,19 +45,34 @@ class _UserProfilePageState extends State<UserProfilePage> {
         },
       );
 
+      print('Response status: ${response.statusCode}'); // Debug print
+      print('Response body: ${response.body}'); // Debug print
+
       if (response.statusCode == 200) {
+        final data = json.decode(response.body);
         setState(() {
-          userData = json.decode(response.body);
+          userData = data;
           isLoading = false;
+          error = null;
         });
       } else {
-        throw Exception('Failed to load profile');
+        setState(() {
+          error = 'Failed to load profile: ${response.statusCode}';
+          isLoading = false;
+        });
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      print('Error loading user data: $e'); // Debug print
       setState(() {
+        error = 'Error: $e';
         isLoading = false;
       });
+    }
+  }
+
+  void _onItemTapped(int index) {
+    if (index != 4) {
+      Navigator.pop(context);
     }
   }
 
@@ -67,188 +80,141 @@ class _UserProfilePageState extends State<UserProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('token');
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       print('Error during logout: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error logging out')),
+      );
     }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white70,
-        title: Text(
-          'Owner Profile',
-          style: TextStyle(color: Colors.black),
+        title: Text('Profile'),
+        backgroundColor: Colors.blue.shade700,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-        centerTitle: true,
-        elevation: 0,
       ),
       body: isLoading 
           ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Profile Header Section
-                  Container(
-                    color: Colors.red,
-                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Profile Picture
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundImage: NetworkImage(
-                            'https://via.placeholder.com/150',
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        // User Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                userData?['name'] ?? 'N/A',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+          : error != null
+              ? Center(child: Text(error!))
+              : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        color: Colors.blue.shade700,
+                        child: Column(
+                          children: [
+                            SizedBox(height: 40),
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.person, size: 50, color: Colors.blue),
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              userData?['name'] ?? 'N/A',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                              SizedBox(height: 5),
-                              Row(
-                                children: [
-                                  Icon(Icons.phone, size: 16, color: Colors.white),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    userData?['phoneNumber'] ?? 'N/A',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 5),
-                              Row(
-                                children: [
-                                  Icon(Icons.email, size: 16, color: Colors.white),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    userData?['email'] ?? 'N/A',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 5),
-                              Row(
-                                children: [
-                                  Icon(Icons.badge, size: 16, color: Colors.white),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    'CIN: ${userData?['cinNumber'] ?? 'N/A'}',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Edit Icon
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.white),
-                          onPressed: () {
-                            // Edit functionality
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // "Edit Your Profile" Button
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Action for profile editing
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade600,
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              userData?['email'] ?? 'N/A',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(width: 10),
-                          Text(
-                            'Edit Your Profile',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            _buildInfoTile('Phone', userData?['phoneNumber'] ?? 'N/A'),
+                            _buildInfoTile('Gender', userData?['gender'] ?? 'N/A'),
+                            _buildInfoTile('Date of Birth', 
+                              userData?['dob'] != null 
+                                ? DateTime.parse(userData!['dob']).toString().split(' ')[0]
+                                : 'N/A'
+                            ),
+                            _buildInfoTile('CIN Number', userData?['cinNumber'] ?? 'N/A'),
+                          ],
+                        ),
                       ),
-                    ),
+                      Divider(),
+                      ListTile(
+                        leading: Icon(Icons.post_add),
+                        title: Text('View Posts'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => YourPostsPage()),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.contact_support),
+                        title: Text('Contact Us'),
+                        onTap: () {
+                          // Contact Us functionality
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.report_problem),
+                        title: Text('Report Issue'),
+                        onTap: () {
+                          // Report Issue functionality
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.logout, color: Colors.red),
+                        title: Text('Logout', style: TextStyle(color: Colors.red)),
+                        onTap: _handleLogout,
+                      ),
+                    ],
                   ),
-
-                  // Options Section
-                  ListTile(
-                    leading: Icon(Icons.post_add, color: Colors.blue.shade700),
-                    title: Text('View Posts'),
-                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                    onTap: () {
-                      // Navigate to View Posts
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => YourPostsPage()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.contact_mail, color: Colors.blue.shade700),
-                    title: Text('Contact Us'),
-                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                    onTap: () {
-                      // Navigate to Contact Us
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.share, color: Colors.blue.shade700),
-                    title: Text('Share App'),
-                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                    onTap: () {
-                      // Add Share App functionality
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.report_problem, color: Colors.blue.shade700),
-                    title: Text('Report an Issue'),
-                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                    onTap: () {
-                      // Navigate to Report Issue
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.logout, color: Colors.red),
-                    title: Text('Logout', style: TextStyle(color: Colors.red)),
-                    onTap: _handleLogout,
-                  ),
-                ],
-              ),
-            ),
+                ),
       bottomNavigationBar: CustomNavbar(
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
         onPostTap: () {
           print("Post action tapped!");
         },
+      ),
+    );
+  }
+
+  Widget _buildInfoTile(String title, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }

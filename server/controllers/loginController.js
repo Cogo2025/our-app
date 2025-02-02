@@ -77,13 +77,19 @@ const loginOwner = async (req, res) => {
   }
 };
 
-// Add this new function
+// Get owner profile
 const getOwnerProfile = async (req, res) => {
   try {
+    console.log('Fetching profile for userId:', req.user.userId); // Debug log
     const owner = await Owner.findById(req.user.userId);
+    
     if (!owner) {
+      console.log('Owner not found'); // Debug log
       return res.status(404).json({ error: 'Owner not found' });
     }
+
+    console.log('Found owner:', owner); // Debug log
+    
     res.status(200).json({
       name: owner.name,
       email: owner.email,
@@ -93,6 +99,7 @@ const getOwnerProfile = async (req, res) => {
       cinNumber: owner.cinNumber
     });
   } catch (error) {
+    console.error('Profile fetch error:', error); // Debug log
     res.status(500).json({ error: 'Server error' });
   }
 };

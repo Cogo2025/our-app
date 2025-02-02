@@ -49,7 +49,7 @@ class _YourPostsPageState extends State<YourPostsPage> {
         });
       } else {
         setState(() {
-          error = 'Failed to load posts: ${response.statusCode}';
+          error = 'Failed to load posts';
           isLoading = false;
         });
       }
@@ -74,125 +74,52 @@ class _YourPostsPageState extends State<YourPostsPage> {
           : error != null
               ? Center(child: Text(error!))
               : posts.isEmpty
-                  ? Center(child: Text("No posts yet."))
+                  ? Center(child: Text('No posts yet'))
                   : RefreshIndicator(
                       onRefresh: fetchPosts,
                       child: ListView.builder(
-                        padding: EdgeInsets.all(8),
                         itemCount: posts.length,
                         itemBuilder: (context, index) {
                           final post = posts[index];
                           return Card(
-                            elevation: 2,
-                            margin: EdgeInsets.symmetric(vertical: 6),
-                            child: IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Left side - Image
-                                  if (post.photos.isNotEmpty)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(4),
-                                        bottomLeft: Radius.circular(4),
-                                      ),
-                                      child: Image.network(
-                                        'http://192.168.1.100:5000/${post.photos[0]}', // Replace with your server IP
-                                        width: 120,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            Container(
-                                          width: 120,
-                                          height: 120,
-                                          color: Colors.grey[300],
-                                          child: Icon(Icons.error),
-                                        ),
-                                      ),
-                                    ),
-                                  
-                                  // Right side - Post details
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(Icons.local_shipping, 
-                                                size: 16, 
-                                                color: Colors.blue.shade700
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                post.truckType,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  "BS: ${post.bsVersion}",
-                                                  style: TextStyle(fontSize: 14),
-                                                ),
-                                              ),
-                                              Text(
-                                                post.driverType,
-                                                style: TextStyle(
-                                                  color: Colors.blue.shade700,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Icon(Icons.access_time, 
-                                                size: 14, 
-                                                color: Colors.grey
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                post.timeDuration,
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Icon(Icons.location_on, 
-                                                size: 14, 
-                                                color: Colors.grey
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                post.location,
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
+                            margin: EdgeInsets.all(8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (post.photos.isNotEmpty)
+                                  Image.network(
+                                    'http://localhost:5000/${post.photos[0]}',
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                      height: 200,
+                                      color: Colors.grey[300],
+                                      child: Icon(Icons.error),
                                     ),
                                   ),
-                                ],
-                              ),
+                                Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Truck Type: ${post.truckType}',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text('BS Version: ${post.bsVersion}'),
+                                      Text('Driver Type: ${post.driverType}'),
+                                      Text('Duration: ${post.timeDuration}'),
+                                      Text('Location: ${post.location}'),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },

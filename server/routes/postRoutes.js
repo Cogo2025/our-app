@@ -39,10 +39,8 @@ router.get('/posts/my-posts', verifyToken, async (req, res) => {
   }
 });
 
-// Create post route (for owners)
+// Owner post routes
 router.post('/owner/posts', verifyToken, upload.array('photos', 5), createPost);
-
-// Get owner's posts route
 router.get('/owner/posts/my-posts', verifyToken, getMyPosts);
 
 module.exports = router;

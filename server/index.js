@@ -19,11 +19,9 @@ if (!fs.existsSync('uploads')) {
 
 // Use Routes
 app.use('/api', registerRoutes);
-app.use('/api', loginRoutes); 
+app.use('/api', loginRoutes); // Add this line
 app.use('/api', postRoutes);
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = 5000;
 const HOST = '0.0.0.0';

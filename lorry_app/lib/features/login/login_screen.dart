@@ -3,7 +3,7 @@ import 'package:lorry_app/core/theme/light_theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:lorry_app/features/home_page/owner_home_page.dart';
-import 'package:lorry_app/features/home_page/driver_home_page.dart'; // Adjust based on your structure
+import 'package:lorry_app/features/home_page/driver_home_page.dart';
 import 'package:lorry_app/features/account_selection/account_selection_screen.dart';
 import 'package:lorry_app/features/login/phone_number_input_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,7 +78,6 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
         } else {
-          print("❌ Login Failed: Invalid email or password");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Invalid email or password')),
           );
@@ -174,7 +173,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        onSaved: (value) => email = value!,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
@@ -198,7 +196,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           suffixIcon: Icon(Icons.visibility_off),
                         ),
                         obscureText: true,
-                        onSaved: (value) => password = value!,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
@@ -238,11 +235,28 @@ class _LoginScreenState extends State<LoginScreen> {
                           minimumSize: Size(double.infinity, 50),
                         ),
                         onPressed: () {
-                          // Navigate to phone number input page
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => PhoneNumberInputScreen()),
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation,
+                                      secondaryAnimation) =>
+                                  PhoneNumberInputScreen(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                const begin = Offset(1.0, 0.0);
+                                const end = Offset.zero;
+                                const curve = Curves.easeInOut;
+
+                                var tween = Tween(begin: begin, end: end)
+                                    .chain(CurveTween(curve: curve));
+                                var offsetAnimation = animation.drive(tween);
+
+                                return SlideTransition(
+                                  position: offsetAnimation,
+                                  child: child,
+                                );
+                              },
+                            ),
                           );
                         },
                         icon: Icon(Icons.phone, color: Colors.black),
