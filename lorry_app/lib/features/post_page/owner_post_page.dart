@@ -55,7 +55,6 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
   Future<void> _submitPost() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Show loading indicator
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -69,24 +68,21 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
       String? token = prefs.getString('token');
 
       if (token == null) {
-        Navigator.pop(context); // Hide loading
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Authentication failed. Please login again.")),
         );
         return;
       }
 
-      // Update the URL to use your server's IP address
-      var url = Uri.parse("http://localhost:5000/api/posts"); // Replace with your server IP
+      // Updated URL for owner posts
+      var url = Uri.parse("http://localhost:5000/api/owner/posts");
       var request = http.MultipartRequest("POST", url);
       
-
-      // Add headers
       request.headers.addAll({
         "Authorization": "Bearer $token",
-      }); // Removed Content-Type header as it's set automatically for multipart requests
+      });
 
-      // Add form fields
       request.fields.addAll({
         "truckType": _truckType!,
         "bsVersion": _bsVersion!,
@@ -95,7 +91,6 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
         "location": _location!,
       });
 
-      // Add photos
       if (_photoBytes.isNotEmpty) {
         for (int i = 0; i < _photoBytes.length; i++) {
           request.files.add(
@@ -109,11 +104,6 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
         }
       }
 
-      print('Sending request to: ${request.url}');
-      print('Headers: ${request.headers}');
-      print('Fields: ${request.fields}');
-      print('Number of files: ${request.files.length}');
-
       var streamedResponse = await request.send().timeout(
         Duration(seconds: 30),
         onTimeout: () {
@@ -122,10 +112,8 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
       );
       
       var response = await http.Response.fromStream(streamedResponse);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
-      Navigator.pop(context); // Hide loading
+      Navigator.pop(context);
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -144,7 +132,7 @@ class _OwnerPostPageState extends State<OwnerPostPage> {
       }
     } catch (e) {
       print('Error during post submission: $e');
-      Navigator.pop(context); // Hide loading
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to create post: ${e.toString()}")),
       );

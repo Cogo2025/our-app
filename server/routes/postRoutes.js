@@ -1,5 +1,5 @@
 const express = require('express');
-const { createPost } = require('../controllers/postController');
+const { createPost, getMyPosts } = require('../controllers/postController');
 const verifyToken = require('../middleware/auth'); // Import the auth middleware
 const upload = require('../middleware/upload');
 const Post = require('../models/postModel');
@@ -8,6 +8,9 @@ const router = express.Router();
 
 // Route for creating a new post with file upload
 router.post('/posts', verifyToken, upload.array('photos', 5), createPost);
+
+// Get user's posts route
+router.get('/posts/my-posts', verifyToken, getMyPosts);
 
 // Add this new route to get posts for the authenticated user
 router.get('/posts/my-posts', verifyToken, async (req, res) => {
@@ -35,6 +38,12 @@ router.get('/posts/my-posts', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Create post route (for owners)
+router.post('/owner/posts', verifyToken, upload.array('photos', 5), createPost);
+
+// Get owner's posts route
+router.get('/owner/posts/my-posts', verifyToken, getMyPosts);
 
 module.exports = router;
 

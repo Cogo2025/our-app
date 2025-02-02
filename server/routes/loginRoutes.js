@@ -1,5 +1,5 @@
 const express = require('express');
-const { loginDriver, loginOwner } = require('../controllers/loginController'); 
+const { loginDriver, loginOwner, getOwnerProfile } = require('../controllers/loginController'); 
 
 const router = express.Router();
 
@@ -9,5 +9,7 @@ router.post('/driver/login', loginDriver);
 
 
 router.post('/owner/login', loginOwner);
+
+router.get('/owner/profile', verifyToken, getOwnerProfile);
 
 module.exports = router;

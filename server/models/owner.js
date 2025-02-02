@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { registrationDB } = require('../config/database');
 
 const driverSchema = new mongoose.Schema({
   name: String,
@@ -20,7 +21,7 @@ const ownerSchema = new mongoose.Schema({
   password: String,
 });
 
-const Driver = mongoose.model('Driver', driverSchema);
-const Owner = mongoose.model('Owner', ownerSchema);
+const Driver = registrationDB.model('Driver', driverSchema);
+const Owner = registrationDB.model('Owner', ownerSchema);
 
 module.exports = { Driver, Owner };

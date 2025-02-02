@@ -34,30 +34,17 @@ class _YourPostsPageState extends State<YourPostsPage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://localhost:5000/api/posts/my-posts'), // Replace with your server IP
+        Uri.parse('http://localhost:5000/api/owner/posts/my-posts'),
         headers: {
           'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
       );
 
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        print('Decoded data: $data');
-        
         setState(() {
-          posts = data.map((post) {
-            try {
-              return Post.fromJson(post);
-            } catch (e) {
-              print('Error parsing post: $e');
-              print('Problematic post data: $post');
-              return null;
-            }
-          }).whereType<Post>().toList();
-          
+          posts = data.map((post) => Post.fromJson(post)).toList();
           isLoading = false;
         });
       } else {

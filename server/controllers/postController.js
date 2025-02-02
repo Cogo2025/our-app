@@ -1,33 +1,29 @@
-const Post = require('../models/postModel');
+const { OwnerPost } = require('../models/postModel');
 
 // Create a post (for owners)
 const createPost = async (req, res) => {
   try {
     const { truckType, bsVersion, driverType, timeDuration, location } = req.body;
     
-    // Check for required fields except photos
     if (!truckType || !bsVersion || !driverType || !timeDuration || !location) {
-      return res.status(400).json({ error: 'Please provide all the required fields' });
+      return res.status(400).json({ error: 'Please provide all required fields' });
     }
 
-    // Get photos from the request files if they exist
     const photos = req.files ? req.files.map(file => file.path) : [];
 
-    // Create a new post with default values for potentially missing fields
-    const newPost = new Post({
-      truckType: truckType || '',
-      bsVersion: bsVersion || '',
-      driverType: driverType || '',
-      timeDuration: timeDuration || '',
-      location: location || '',
-      photos: photos,
-      owner: req.user._id,
+    const newPost = new OwnerPost({
+      truckType,
+      bsVersion,
+      driverType,
+      timeDuration,
+      location,
+      photos,
+      owner: req.user.userId,
+      userType: 'owner'
     });
 
-    // Save the post
     await newPost.save();
-
-    console.log('Created post:', newPost); // Debug log
+    console.log('Created owner post:', newPost);
     res.status(201).json({ message: 'Post created successfully', post: newPost });
   } catch (error) {
     console.error('Error creating post:', error);
@@ -35,4 +31,18 @@ const createPost = async (req, res) => {
   }
 };
 
-module.exports = { createPost };
+// Get posts for logged-in owner
+const getMyPosts = async (req, res) => {
+  try {
+    const posts = await OwnerPost.find({ owner: req.user.userId })
+      .sort({ createdAt: -1 });
+    
+    console.log('Fetched owner posts:', posts);
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = { createPost, getMyPosts };

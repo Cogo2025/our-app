@@ -77,5 +77,24 @@ const loginOwner = async (req, res) => {
   }
 };
 
+// Add this new function
+const getOwnerProfile = async (req, res) => {
+  try {
+    const owner = await Owner.findById(req.user.userId);
+    if (!owner) {
+      return res.status(404).json({ error: 'Owner not found' });
+    }
+    res.status(200).json({
+      name: owner.name,
+      email: owner.email,
+      phoneNumber: owner.phoneNumber,
+      gender: owner.gender,
+      dob: owner.dob,
+      cinNumber: owner.cinNumber
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
-module.exports = { loginDriver, loginOwner };
+module.exports = { loginDriver, loginOwner, getOwnerProfile };
